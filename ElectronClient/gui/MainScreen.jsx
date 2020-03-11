@@ -4,6 +4,7 @@ const { Header } = require('./Header.min.js');
 const { SideBar } = require('./SideBar.min.js');
 const { NoteList } = require('./NoteList.min.js');
 const { NoteText } = require('./NoteText.min.js');
+const NoteText2 = require('./NoteText2.js').default;
 const { PromptDialog } = require('./PromptDialog.min.js');
 const NoteContentPropertiesDialog = require('./NoteContentPropertiesDialog.js').default;
 const NotePropertiesDialog = require('./NotePropertiesDialog.min.js');
@@ -20,6 +21,7 @@ const { bridge } = require('electron').remote.require('./bridge');
 const eventManager = require('../eventManager');
 const VerticalResizer = require('./VerticalResizer.min');
 const PluginManager = require('lib/services/PluginManager');
+const TemplateUtils = require('lib/TemplateUtils');
 
 class MainScreenComponent extends React.Component {
 	constructor() {
@@ -66,7 +68,8 @@ class MainScreenComponent extends React.Component {
 	}
 
 	UNSAFE_componentWillReceiveProps(newProps) {
-		if (newProps.windowCommand) {
+		// Execute a command if any, and if we haven't already executed it
+		if (newProps.windowCommand && newProps.windowCommand !== this.props.windowCommand) {
 			this.doCommand(newProps.windowCommand);
 		}
 	}
@@ -96,15 +99,17 @@ class MainScreenComponent extends React.Component {
 			const folderId = Setting.value('activeFolderId');
 			if (!folderId) return;
 
-			const newNote = {
+			const body = template ? TemplateUtils.render(template) : '';
+
+			const newNote = await Note.save({
 				parent_id: folderId,
-				template: template,
 				is_todo: isTodo ? 1 : 0,
-			};
+				body: body,
+			}, { provisional: true });
 
 			this.props.dispatch({
-				type: 'NOTE_SET_NEW_ONE',
-				item: newNote,
+				type: 'NOTE_SELECT',
+				id: newNote.id,
 			});
 		};
 
@@ -628,6 +633,12 @@ class MainScreenComponent extends React.Component {
 		const shareNoteDialogOptions = this.state.shareNoteDialogOptions;
 		const keyboardMode = Setting.value('editor.keyboardMode');
 
+		const isWYSIWYG = this.props.noteVisiblePanes.length && this.props.noteVisiblePanes[0] === 'wysiwyg';
+		const noteTextComp = isWYSIWYG ?
+			<NoteText2 editor="TinyMCE" style={styles.noteText} keyboardMode={keyboardMode} visiblePanes={this.props.noteVisiblePanes} />
+			:
+			<NoteText style={styles.noteText} keyboardMode={keyboardMode} visiblePanes={this.props.noteVisiblePanes} />;
+
 		return (
 			<div style={style}>
 				<div style={modalLayerStyle}>{this.state.modalLayer.message}</div>
@@ -644,8 +655,7 @@ class MainScreenComponent extends React.Component {
 				<VerticalResizer style={styles.verticalResizer} onDrag={this.sidebar_onDrag} />
 				<NoteList style={styles.noteList} />
 				<VerticalResizer style={styles.verticalResizer} onDrag={this.noteList_onDrag} />
-				<NoteText style={styles.noteText} keyboardMode={keyboardMode} visiblePanes={this.props.noteVisiblePanes} />
-
+				{noteTextComp}
 				{pluginDialog}
 			</div>
 		);

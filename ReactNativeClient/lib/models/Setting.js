@@ -265,6 +265,7 @@ class Setting extends BaseModel {
 					[Setting.LAYOUT_EDITOR_VIEWER]: _('%s / %s', _('Editor'), _('Viewer')),
 					[Setting.LAYOUT_EDITOR_SPLIT]: _('%s / %s', _('Editor'), _('Split View')),
 					[Setting.LAYOUT_VIEWER_SPLIT]: _('%s / %s', _('Viewer'), _('Split View')),
+					[Setting.LAYOUT_SPLIT_WYSIWYG]: _('%s / %s', _('Split'), 'WYSIWYG (Experimental)'),
 				}),
 			},
 			uncompletedTodosOnTop: { value: true, type: Setting.TYPE_BOOL, section: 'note', public: true, appTypes: ['cli'], label: () => _('Uncompleted to-dos on top') },
@@ -454,6 +455,7 @@ class Setting extends BaseModel {
 				appTypes: ['desktop'],
 				label: () => _('Custom stylesheet for rendered Markdown'),
 				section: 'appearance',
+				advanced: true,
 			},
 			'style.customCss.joplinApp': {
 				onClick: () => {
@@ -469,6 +471,8 @@ class Setting extends BaseModel {
 				appTypes: ['desktop'],
 				label: () => _('Custom stylesheet for Joplin-wide app styles'),
 				section: 'appearance',
+				advanced: true,
+				description: () => 'CSS file support is provided for your convenience, but they are advanced settings, and styles you define may break from one version to the next. If you want to use them, please know that it might require regular development work from you to keep them working. The Joplin team cannot make a commitment to keep the application HTML structure stable.',
 			},
 
 			autoUpdateEnabled: { value: true, type: Setting.TYPE_BOOL, section: 'application', public: true, appTypes: ['desktop'], label: () => _('Automatically update the application') },
@@ -1036,6 +1040,7 @@ Setting.LAYOUT_ALL = 0;
 Setting.LAYOUT_EDITOR_VIEWER = 1;
 Setting.LAYOUT_EDITOR_SPLIT = 2;
 Setting.LAYOUT_VIEWER_SPLIT = 3;
+Setting.LAYOUT_SPLIT_WYSIWYG = 4;
 
 Setting.DATE_FORMAT_1 = 'DD/MM/YYYY';
 Setting.DATE_FORMAT_2 = 'DD/MM/YY';
